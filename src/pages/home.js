@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "../components/header";
 import { Dashboard } from "../pages/dashboard";
 import { Details } from "../components/details";
-import { collection, addDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  setDoc,
+} from "firebase/firestore";
 import { db } from "../components/firebase"; // Import the Firestore database
 
 function Home() {
@@ -16,7 +24,10 @@ function Home() {
     star: 0,
     multipleChoice: "",
   });
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState({
+    flag: false,
+    key: "",
+  });
   const [logicInputs, setLogicInputs] = useState({
     url: "",
     urlFlag: false,
@@ -25,10 +36,13 @@ function Home() {
     time: "",
     timeFlag: false,
   });
+  const [feedbackTitle, setFeedbackTitle] = useState("");
+  const [allData, setAllData] = useState([]);
+  const [filterKeys, setFilterKeys] = useState([]);
 
-  const handleToPublish = async () => {
-    await apiDocs("feedbackUrl", logicInputs);
-    await apiDocs("feedback", inputField);
+  const handleToSave = async () => {
+    // await apiDocs("feedbackUrl", logicInputs, feedbackTitle);
+    await apiDocs("feedback", inputField, feedbackTitle);
 
     setAllFeedBack([
       ...allFeedBack,
@@ -42,21 +56,72 @@ function Home() {
       star: 0,
       multipleChoice: "",
     });
-    setShowDetails(true);
   };
 
-  async function apiDocs(collections, data) {
-    await addDoc(collection(db, collections), {
-      ...data,
-      createAt: new Date().getTime(),
-    });
+  async function apiDocs(collectionName, data, keys) {
+    try {
+      // Generate a new document reference with a unique ID
+      const newDocRef = doc(collection(db, collectionName));
+
+      // Prepare the data with the ID included
+      const dataWithId = {
+        ...data,
+        createAt: new Date().getTime(),
+        keys: keys,
+        id: newDocRef.id, // Add the document ID to the object
+      };
+
+      // Save the data to Firestore
+      await setDoc(newDocRef, dataWithId);
+
+      console.log("Document successfully written with ID: ", newDocRef.id);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
   }
 
+  const handleToPublish = async () => {
+    setShowDetails({
+      flag: false,
+      key: "",
+    });
+    await apiDocs("feedbackUrl", logicInputs, feedbackTitle);
+    await getDocs(collection(db, "feedback")).then((res) => {
+      setAllData(res.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+  };
+
+  const handleDelete = async (keys, id) => {
+    console.log(id);
+    try {
+      // Reference to the specific document by its ID in the "feedback" collection
+      const docRef = doc(db, "feedback", id);
+
+      // Delete the document from Firestore
+      await deleteDoc(docRef);
+
+      // Update the local state by removing the deleted item
+      const updatedFilterKeys = filterKeys.filter((item) => item.keys !== keys);
+      setFilterKeys(updatedFilterKeys);
+
+      console.log(`Document with ID ${id} successfully deleted`);
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+    }
+  };
   return (
     <div>
-      <Header createNewForm={createNewForm} handleToPublish={handleToPublish} />
-      {showDetails ? (
-        <Details data={allFeedBack} setShowDetails={setShowDetails} />
+      <Header
+        createNewForm={createNewForm}
+        handleToSave={handleToSave}
+        handleToPublish={handleToPublish}
+      />
+      {showDetails?.flag ? (
+        <Details
+          data={allFeedBack}
+          setShowDetails={setShowDetails}
+          showDetails={showDetails}
+        />
       ) : (
         <Dashboard
           setCreateNewForm={setCreateNewForm}
@@ -66,6 +131,12 @@ function Home() {
           input={inputField}
           logicInputs={logicInputs}
           setLogicInputs={setLogicInputs}
+          setFeedbackTitle={setFeedbackTitle}
+          feedbackTitle={feedbackTitle}
+          setShowDetails={setShowDetails}
+          handleDelete={handleDelete}
+          filterKeys={filterKeys}
+          setFilterKeys={setFilterKeys}
         />
       )}
     </div>

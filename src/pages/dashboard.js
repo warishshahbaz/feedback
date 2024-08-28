@@ -1,10 +1,12 @@
 import { Card } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MdAdd } from "react-icons/md";
 import CreateModal from "../components/createModal";
 import { CreateNewForm } from "../components/createNewForm";
 import { Sidebar } from "../components/sidebar";
 import cardLogo from "../galary/survey-standard 1.png";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../components/firebase";
 
 export const Dashboard = ({
   setCreateNewForm,
@@ -14,10 +16,51 @@ export const Dashboard = ({
   input,
   logicInputs,
   setLogicInputs,
+  feedbackTitle,
+  setFeedbackTitle,
+  setShowDetails,
+  handleDelete,
+  filterKeys,
+  setFilterKeys,
 }) => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [inputField, setInputField] = useState([]);
   const [isFieldEdited, setFieldIsEdited] = useState(null);
+
+  const [data, setData] = useState([]);
+  console.log(filterKeys, "filter");
+
+  const handleSubmission = (key) => {
+    setShowDetails({
+      flag: true,
+      key: key,
+    });
+  };
+
+  useEffect(() => {
+    async function getAllData() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "feedback"));
+        // Extract data from documents
+        const docsData = querySnapshot.docs.map((doc) => doc.data());
+        setData(docsData);
+
+        // Get unique objects based on the `keys` value
+        const uniqueObjectsArray = [
+          ...new Map(docsData.map((item) => [item.keys, item])).values(),
+        ];
+
+        console.log(uniqueObjectsArray, "Unique array of objects");
+
+        // Update state with unique objects
+        setFilterKeys(uniqueObjectsArray);
+      } catch (error) {
+        console.error("Error fetching documents: ", error);
+      }
+    }
+
+    getAllData();
+  }, []);
 
   return (
     <>
@@ -33,6 +76,8 @@ export const Dashboard = ({
               inputs={input}
               setOpen={setCreateNewForm}
               setOpenCreateModal={setOpenCreateModal}
+              feedbackTitle={feedbackTitle}
+              setCreateNewForm={setCreateNewForm}
             />
           </div>
           <div className="w-[20%] border-l-[1.7px] border-t-0 border-r-0 border-solid border-slate-300 ">
@@ -57,18 +102,19 @@ export const Dashboard = ({
               <p className="text-xl font-semibold ">New Form</p>
             </div>
           </Card>
-          <CustomeCard
-            title="Delivery"
-            submitted={10}
-            viewed={55}
-            date={"8/5/2024"}
-          />
-          <CustomeCard
-            title="Product Quality"
-            submitted={100}
-            viewed={300}
-            date={"7/5/2024"}
-          />
+          {filterKeys &&
+            filterKeys?.map((key) => (
+              <CustomeCard
+                title={key.keys}
+                submitted={key.submitted}
+                viewed={key.viewed}
+                date={key.createAt}
+                data={data}
+                handleSubmission={handleSubmission}
+                id={key.id}
+                handleDelete={handleDelete}
+              />
+            ))}
         </div>
       )}
       {openCreateModal && (
@@ -76,13 +122,24 @@ export const Dashboard = ({
           setCreateNewForm={setCreateNewForm}
           open={openCreateModal}
           setOpen={setOpenCreateModal}
+          setFeedbackTitle={setFeedbackTitle}
+          feedbackTitle={feedbackTitle}
         />
       )}
     </>
   );
 };
 
-const CustomeCard = ({ title, submitted, viewed, date }) => {
+const CustomeCard = ({
+  title,
+  submitted,
+  viewed,
+  date,
+  data,
+  handleSubmission,
+  id,
+  handleDelete,
+}) => {
   return (
     <div className=" w-[270px] h-[300px] p-0  shadow-md cursor-pointer ">
       <Header />
@@ -91,25 +148,38 @@ const CustomeCard = ({ title, submitted, viewed, date }) => {
         submitted={submitted}
         viewed={viewed}
         date={date}
+        data={data}
+        id={id}
       />
-      <ButtonComp />
+      <ButtonComp
+        keys={title}
+        handleSubmission={handleSubmission}
+        handleDelete={handleDelete}
+        id={id}
+      />
     </div>
   );
 };
 
-const ButtonComp = () => {
+const ButtonComp = ({ keys, handleSubmission, handleDelete, id }) => {
   return (
     <>
       <div className="w-full flex justify-center items-center flex-col ">
         <div className="w-[190px] flex justify-center items-center flex-col ">
-          <button className="w-full bg-[#9c27b0] text-white py-[6px] text-[14px] rounded-md">
+          <button
+            onClick={() => handleSubmission(keys)}
+            className="w-full bg-[#9c27b0] text-white py-[6px] text-[14px] rounded-md"
+          >
             VIEW SUBMISSION
           </button>
           <div className="flex gap-2 my-2 w-full ">
             <button className="bg-[#2E7D32] w-[40%] text-white py-[6px] text-[14px] rounded-md ">
               EDIT
             </button>
-            <button className="bg-[#2196F3] w-[60%] text-white rounded-md text-[14px] py-[6px] ">
+            <button
+              onClick={() => handleDelete(keys, id)}
+              className="bg-[#2196F3] w-[60%] text-white rounded-md text-[14px] py-[6px] "
+            >
               DELETE
             </button>
           </div>
@@ -129,7 +199,10 @@ const Header = () => {
   );
 };
 
-const CardBody = ({ title, submitted, viewed, date }) => {
+const CardBody = ({ title, submitted, viewed, date, data }) => {
+  console.log(title, "title");
+  let vieweds = data.filter((item) => item.keys === title).length;
+
   return (
     <>
       <div className="px-2 py-1 ">
@@ -141,19 +214,19 @@ const CardBody = ({ title, submitted, viewed, date }) => {
         <div className=" my-2 flex justify-between items-center ">
           <p className="text-[15px] text-gray-300 font-semibold ">Submmited</p>
 
-          <p className="">{submitted}</p>
+          <p className="">{22}</p>
         </div>
         <div className=" my-2 flex justify-between items-center ">
           <p className="text-[15px] text-gray-300 font-semibold ">Viewed</p>
 
-          <p className="">{viewed}</p>
+          <p className="">{vieweds}</p>
         </div>
         <div className=" my-2 flex justify-between items-center ">
           <p className="text-[15px] text-gray-300 font-semibold ">
             Date Published
           </p>
 
-          <p className="">{date}</p>
+          <p className="">{new Date(date)?.toLocaleDateString()}</p>
         </div>
       </div>
     </>

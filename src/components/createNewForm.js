@@ -29,6 +29,8 @@ export const CreateNewForm = ({
   setInputs,
   setOpen,
   setOpenCreateModal,
+  feedbackTitle,
+  setCreateNewForm,
 }) => {
   const [allInputField, setAllInputField] = useState([]);
 
@@ -177,10 +179,11 @@ export const CreateNewForm = ({
           size={20}
           className="font-bold "
         />{" "}
-        <span className="font-semibold text-[14px]">
-          Generic Website Rating
-        </span>
-        <MdOutlineModeEditOutline size={20} />
+        <span className="font-semibold text-[14px]">{feedbackTitle}</span>
+        <MdOutlineModeEditOutline
+          onClick={() => setCreateNewForm(true)}
+          size={20}
+        />
       </div>
       <div className=" w-full p-2 flex items-center  flex-col gap-5  overflow-auto ">
         {allInputField.length > 0 ? (

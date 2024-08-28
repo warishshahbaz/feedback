@@ -5,13 +5,17 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { PiLessThanBold } from "react-icons/pi";
 import { db } from "./firebase";
 
-export const Details = ({ data, setShowDetails }) => {
+export const Details = ({ data, setShowDetails, showDetails }) => {
   const [allData, setAllData] = useState([]);
 
   useEffect(() => {
     async function getAllFeedBack() {
       await getDocs(collection(db, "feedback")).then((res) => {
-        setAllData(res.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+        setAllData(
+          res.docs
+            .map((doc) => ({ ...doc.data(), id: doc.id }))
+            .filter((item) => item.keys === showDetails.key)
+        );
       });
     }
 
@@ -89,7 +93,7 @@ export const Details = ({ data, setShowDetails }) => {
         <div className="flex items-center bg-blue-500 gap-3 p-3 rounded-t-md text-white ">
           <PiLessThanBold
             size={20}
-            onClick={() => setShowDetails(false)}
+            onClick={() => setShowDetails({ flag: false, key: "" })}
             className="font-bold "
           />{" "}
           <span className="font-semibold text-[14px]">

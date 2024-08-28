@@ -1,7 +1,13 @@
 import { Button, Modal } from "antd";
-import React from "react";
+import React, { useState } from "react";
 
-const CreateModal = ({ open, setOpen, setCreateNewForm }) => {
+const CreateModal = ({
+  open,
+  setOpen,
+  setCreateNewForm,
+  feedbackTitle,
+  setFeedbackTitle,
+}) => {
   return (
     <div>
       <Modal
@@ -10,17 +16,30 @@ const CreateModal = ({ open, setOpen, setCreateNewForm }) => {
         onCancel={() => setOpen(false)}
         footer={
           <div className="flex gap-2 justify-end">
+            {feedbackTitle ? (
+              <p
+                onClick={() => {
+                  setOpen(false);
+                  setCreateNewForm(true);
+                }}
+                className={`${
+                  feedbackTitle ? "text-[#189657]" : "text-slate-400"
+                }  shadow-md rounded-md p-1 cursor-pointer`}
+              >
+                CREATE
+              </p>
+            ) : (
+              <p
+                className={`${
+                  feedbackTitle ? "text-[#189657]" : "text-slate-400"
+                }  shadow-md rounded-md p-1 cursor-pointer`}
+              >
+                CREATE
+              </p>
+            )}
+
             <p
-              onClick={() => {
-                setOpen(false);
-                setCreateNewForm(true);
-              }}
-              className="text-[#189657] shadow-md rounded-md p-1 cursor-pointer "
-            >
-              CREATE
-            </p>
-            <p
-              className="text-slate-500 shadow-md rounded-md p-1 cursor-pointer"
+              className="text-slate-400 shadow-md rounded-md p-1 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               CANCEL
@@ -29,8 +48,13 @@ const CreateModal = ({ open, setOpen, setCreateNewForm }) => {
         }
         title="Create Feedback Form"
       >
-        <span></span>
-        <p>Generic website rating</p>
+        <input
+          type="text"
+          placeholder="Feedback Title"
+          value={feedbackTitle}
+          onChange={(e) => setFeedbackTitle(e.target.value)}
+          className=" text-[17px] w-full border-0 border-b-[2px] border-solid border-slate-300 focus:outline-none"
+        />
       </Modal>
     </div>
   );
