@@ -41,21 +41,20 @@ function Home() {
   const [filterKeys, setFilterKeys] = useState([]);
 
   const handleToSave = async () => {
-    // await apiDocs("feedbackUrl", logicInputs, feedbackTitle);
     await apiDocs("feedback", inputField, feedbackTitle);
 
     setAllFeedBack([
       ...allFeedBack,
       { ...inputField, createAt: new Date().getTime() },
     ]);
-    setInputField({
-      textarea: "",
-      reference: 0,
-      smile: 0,
-      suggestion: "",
-      star: 0,
-      multipleChoice: "",
-    });
+    // setInputField({
+    //   textarea: "",
+    //   reference: 0,
+    //   smile: 0,
+    //   suggestion: "",
+    //   star: 0,
+    //   multipleChoice: "",
+    // });
   };
 
   async function apiDocs(collectionName, data, keys) {
@@ -81,10 +80,8 @@ function Home() {
   }
 
   const handleToPublish = async () => {
-    setShowDetails({
-      flag: false,
-      key: "",
-    });
+    alert("Publishing...");
+    setCreateNewForm(false);
     await apiDocs("feedbackUrl", logicInputs, feedbackTitle);
     await getDocs(collection(db, "feedback")).then((res) => {
       setAllData(res.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -92,23 +89,17 @@ function Home() {
   };
 
   const handleDelete = async (keys, id) => {
-    console.log(id);
     try {
-      // Reference to the specific document by its ID in the "feedback" collection
       const docRef = doc(db, "feedback", id);
-
-      // Delete the document from Firestore
       await deleteDoc(docRef);
-
-      // Update the local state by removing the deleted item
       const updatedFilterKeys = filterKeys.filter((item) => item.keys !== keys);
       setFilterKeys(updatedFilterKeys);
-
       console.log(`Document with ID ${id} successfully deleted`);
     } catch (error) {
       console.error("Error deleting document: ", error);
     }
   };
+  console.log(showDetails, "showDetails");
   return (
     <div>
       <Header

@@ -37,6 +37,8 @@ export const Dashboard = ({
     });
   };
 
+  const handleEdit = (key, id) => {};
+
   useEffect(() => {
     async function getAllData() {
       try {
@@ -113,6 +115,7 @@ export const Dashboard = ({
                 handleSubmission={handleSubmission}
                 id={key.id}
                 handleDelete={handleDelete}
+                handleEdit={handleEdit}
               />
             ))}
         </div>
@@ -139,6 +142,7 @@ const CustomeCard = ({
   handleSubmission,
   id,
   handleDelete,
+  handleEdit,
 }) => {
   return (
     <div className=" w-[270px] h-[300px] p-0  shadow-md cursor-pointer ">
@@ -155,13 +159,20 @@ const CustomeCard = ({
         keys={title}
         handleSubmission={handleSubmission}
         handleDelete={handleDelete}
+        handleEdit={handleEdit}
         id={id}
       />
     </div>
   );
 };
 
-const ButtonComp = ({ keys, handleSubmission, handleDelete, id }) => {
+const ButtonComp = ({
+  keys,
+  handleSubmission,
+  handleDelete,
+  id,
+  handleEdit,
+}) => {
   return (
     <>
       <div className="w-full flex justify-center items-center flex-col ">
@@ -173,7 +184,10 @@ const ButtonComp = ({ keys, handleSubmission, handleDelete, id }) => {
             VIEW SUBMISSION
           </button>
           <div className="flex gap-2 my-2 w-full ">
-            <button className="bg-[#2E7D32] w-[40%] text-white py-[6px] text-[14px] rounded-md ">
+            <button
+              onClick={() => handleEdit(keys, id)}
+              className="bg-[#2E7D32] w-[40%] text-white py-[6px] text-[14px] rounded-md "
+            >
               EDIT
             </button>
             <button

@@ -58,15 +58,6 @@ export const Sidebar = ({
   logicInputs,
   setLogicInputs,
 }) => {
-  // const [logicInputs, setLogicInputs] = useState({
-  //   url: "",
-  //   urlFlag: false,
-  //   date: "",
-  //   dateFlag: false,
-  //   time: "",
-  //   timeFlag: false,
-  // });
-
   return (
     <>
       {isFieldEdited ? (
